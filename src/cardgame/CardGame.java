@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -55,9 +57,11 @@ public class CardGame {
         while(true)
         {
             //Initial Drawing of Cards, player dealer, player, hidden dealer card. Starting at 1, not 0, to simulate discard.
-            int hitCountPlayer= 0;
-            int hitCountDealer;
-            int playerAces = 0; //aces player has. used to subtract to score for an ace being worth 1. Will display minimum max scores. (avoid confusion of showing 3 scores if 2 aces.)
+            int hitCountPlayer = 0;
+            int hitCountDealer = 0;
+            int playerAces = 0;
+            int dealerAces = 0;
+            //aces player has. used to subtract to score for an ace being worth 1. Will display minimum max scores. (avoid confusion of showing 3 scores if 2 aces.)
             drawCard(deck[1],playerCards);
             drawCard(deck[2],dealerCards);
             drawCard(deck[3],playerCards);
@@ -70,12 +74,9 @@ public class CardGame {
             if(deck[1].value==11)
             {
                 playerAces++;
-                System.out.println("PLAYER HAS ACE");
             }
             if(deck[3].value==11)
             {
-                System.out.println("PLAYER HAS ACE");
-                
                 playerAces++;
             }
             System.out.print("\nPlayer Score: " + playerScore);
@@ -90,9 +91,9 @@ public class CardGame {
             
             //at this point, each player has two cards.
              //scanner for playing game
-            char c;
+            char cIn = sc.next().charAt(0);
             System.out.println("");
-            while('b'== sc.next().charAt(0)) //while player hits b, then enter (to bet)
+            while('h'== cIn) //while player hits b, then enter (to bet)
             {           
                 //player hit b, draw a card, print decks, calulate score
                 
@@ -122,31 +123,139 @@ public class CardGame {
                     
                     blackJackPlayerBust();
                 }
-                System.out.println("");   
+                System.out.println(""); 
+                cIn = sc.next().charAt(0);
             }
-            if('s'== sc.next().charAt(0))
+            if('s'== cIn) // to stay
             {
-                System.out.println("STAYED");
+                while(playerScore>22)//still valid score, just figuring out max score player has, if its over 21, we have aces and NEED them to be a 1 so they don't bust
+                {
+                 playerScore-=10;   
+                }
+                System.out.println("Best Score is: " + playerScore);
+                
+                blackJackPrintDecks(dealerCards,playerCards); // just to avoid shifting, reprint
+                gamepause(2000);
+                
+                //need to reset dealer string because we need to un hide their card.
+                
+                dealerCards = new String[7];
+                int i;
+                for(i=0;i<7;i++)
+                    dealerCards[i] = new String();
+                
+                drawCard(deck[2],dealerCards);
+                deck[4].hidden=false;
+                drawCard(deck[4],dealerCards);
+                blackJackPrintDecks(dealerCards,playerCards); //Re print deck with dealer card showing.
+                gamepause(2000);
+                //score check, begin hitting if needed. 
+                dealerScore = deck[2].value + deck[4].value;
+                if(deck[2].value==11)
+                {
+                    dealerAces++;
+                }
+                if(deck[4].value==11)
+                {
+                    dealerAces++;
+                }
+                while(dealerScore<16) //rules for a dealer to hit
+                {
+                    hitCountDealer++;
+                    drawCard(deck[(4 + hitCountPlayer + hitCountDealer)],dealerCards);
+                    blackJackPrintDecks(dealerCards,playerCards);
+                    dealerScore += deck[(4 + hitCountPlayer + hitCountDealer)].value;//4 + hitCountPlayer is the last card drawn by the player. Go to next card.
+                    gamepause(2000);
+                }
+                System.out.println("Dealer Score is " + dealerScore);
+                
+                if(dealerScore>21)
+                {
+                    dBust();
+                }
+                if(dealerScore == playerScore)
+                {
+                    push();
+                }
+                if(dealerScore>playerScore)
+                {
+                    dWin();
+                }
+                if(dealerScore<playerScore)
+                {
+                    pWin();
+                }
+                
             }
             
-
+            if(!yOrN("Keep playing? y for yes, any other key to exit"))
+            {
+                System.out.println("\n\n********Thanks for Playing :) ********");
+                break;
+            }
+            //keep playing, clear all vars.
+            int i;
+            for(i=0;i<7;i++)
+            {
+                playerCards[i]="";
+                dealerCards[i]="";
+                
+            }
+            //reshuffle deck
+            deck = shuffler(deck);
             
             
-            
-            
-            break;
         }
     }
+    public static void dBust()
+    {
+        System.out.println("Dealer busted with " + dealerScore);
+        pWin();
+    }
+    public static void push()
+    {
+        System.out.println("You pushed with the dealer!");
+    }
+    public static void dWin()
+    {
+        System.out.println("The dealer has won this hand.");
+    }
+    public static void pWin()
+    {
+        System.out.println("You have won this hand!");
+    }
+    public static Boolean yOrN(String msg)
+    {
+        System.out.println(msg);
+        char cIn = sc.next().charAt(0);
+        return cIn=='y';
+    }
+    public static void gamepause(int time)
+    {
+        try 
+        {
+            Thread.sleep(time); //wait for two seconds
+            //dealer turn to draw.
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(CardGame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     public static void blackJackPlayerBust()
     {
-        System.out.println("\nYou Busted, Game Over");
+        System.out.println("\nYou Busted with " + playerScore);
+        dWin();
         System.exit(0);
     }
+    
     public static void blackJackBlackJack()
     {
         System.out.println("Blackjack! Payout is 3:2");
         System.exit(0);
     }
+    
     public static void blackJackPrintDecks(String[] dealer, String[] player)
     {
         System.out.println("******Dealer's Cards******");

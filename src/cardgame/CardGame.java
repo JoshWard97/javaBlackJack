@@ -31,6 +31,7 @@ public class CardGame {
     public static int dealerScore;
     public static Scanner sc = new Scanner(System.in);
     public static float coins = 100;
+    public static int currentBet =  0;
     
     public static void main(String[] args) {
         // Create Deck
@@ -53,10 +54,25 @@ public class CardGame {
     //printCards(playerCards);
      
     }
+    public static void setBet()
+    {
+        System.out.println("\n*****Enter your bet for this Hand*****");
+        currentBet = sc.nextInt();
+    }
     public static void blackJack(card[] deck,String [] playerCards,String [] dealerCards)
     {
         while(true)
         {
+            System.out.println("Coins: " + coins);
+            setBet();
+            if(currentBet>coins) //betting more than available
+            {
+                System.out.println("Bet can't be more than the coins you have. (" + coins + ")");
+                while(currentBet>coins)
+                {
+                    setBet();
+                }
+            }
             //Initial Drawing of Cards, player dealer, player, hidden dealer card. Starting at 1, not 0, to simulate discard.
             int hitCountPlayer = 0;
             int hitCountDealer = 0;
@@ -193,6 +209,7 @@ public class CardGame {
             if(!yOrN("Keep playing? y for yes, any other key to exit"))
             {
                 System.out.println("\n\n********Thanks for Playing :) ********");
+                System.out.println("********Score: " + coins + "********");
                 break;
             }
             //keep playing, clear all vars.
@@ -221,9 +238,16 @@ public class CardGame {
     public static void dWin()
     {
         System.out.println("The dealer has won this hand.");
+        coins = coins -currentBet;
+        if(coins<=0)
+        {
+            System.out.println("You've ran out of coins! Game over, thanks for playing!");
+            System.exit(0);
+        }
     }
     public static void pWin()
     {
+        coins = coins + currentBet;
         System.out.println("You have won this hand!");
     }
     public static Boolean yOrN(String msg)
@@ -254,6 +278,7 @@ public class CardGame {
     public static void blackJackBlackJack()
     {
         System.out.println("Blackjack! Payout is 3:2");
+        coins = (float) 1.5 * currentBet;
     }
     
     public static void blackJackPrintDecks(String[] dealer, String[] player)

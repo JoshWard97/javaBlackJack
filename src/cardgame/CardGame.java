@@ -30,6 +30,7 @@ public class CardGame {
     public static int playerScore;
     public static int dealerScore;
     public static Scanner sc = new Scanner(System.in);
+    public static float coins = 100;
     
     public static void main(String[] args) {
         // Create Deck
@@ -122,6 +123,7 @@ public class CardGame {
                 {
                     
                     blackJackPlayerBust();
+                    break;
                 }
                 System.out.println(""); 
                 cIn = sc.next().charAt(0);
@@ -159,7 +161,7 @@ public class CardGame {
                 {
                     dealerAces++;
                 }
-                while(dealerScore<16) //rules for a dealer to hit
+                while(dealerScore<17) //rules for a dealer to hit
                 {
                     hitCountDealer++;
                     drawCard(deck[(4 + hitCountPlayer + hitCountDealer)],dealerCards);
@@ -169,19 +171,19 @@ public class CardGame {
                 }
                 System.out.println("Dealer Score is " + dealerScore);
                 
-                if(dealerScore>21)
+                if((dealerScore-(10*dealerAces))>21)
                 {
                     dBust();
                 }
-                if(dealerScore == playerScore)
+                else if(dealerScore == playerScore)
                 {
                     push();
                 }
-                if(dealerScore>playerScore)
+                else if(dealerScore>playerScore)
                 {
                     dWin();
                 }
-                if(dealerScore<playerScore)
+                else if(dealerScore<playerScore)
                 {
                     pWin();
                 }
@@ -247,13 +249,11 @@ public class CardGame {
     {
         System.out.println("\nYou Busted with " + playerScore);
         dWin();
-        System.exit(0);
     }
     
     public static void blackJackBlackJack()
     {
         System.out.println("Blackjack! Payout is 3:2");
-        System.exit(0);
     }
     
     public static void blackJackPrintDecks(String[] dealer, String[] player)
